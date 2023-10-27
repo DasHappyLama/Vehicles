@@ -8,8 +8,5 @@ softdepend:
 authors: [ notnotnotswipez ]
 commands:
   vehicle:
-    description: A test command
   creationmode:
-    description: A test command
   armorstandify:
-    description: A test command

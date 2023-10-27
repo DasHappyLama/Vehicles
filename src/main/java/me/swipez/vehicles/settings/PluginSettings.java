@@ -4,8 +4,8 @@ import me.swipez.vehicles.VehiclesPlugin;
 
 public class PluginSettings {
 
-    public boolean ownerOnlyRider = false;
-    public boolean planes = true;
+    public boolean ownerOnlyRider;
+    public boolean planes;
 
     public PluginSettings(){
         ownerOnlyRider = VehiclesPlugin.mainConfig.getConfig().getBoolean("owner-only-drivers");

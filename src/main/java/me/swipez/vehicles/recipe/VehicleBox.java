@@ -35,6 +35,7 @@ public class VehicleBox implements Listener {
     public ItemStack getItemStack(){
         ItemStack itemStack = new ItemStack(Material.CHEST);
         ItemMeta itemMeta = itemStack.getItemMeta();
+        assert itemMeta != null;
         itemMeta.setDisplayName(ChatColor.GOLD+"Vehicle Box: "+ChatColor.GREEN+ChatColor.BOLD+vehicle.carName.toUpperCase().replace("_", " "));
         List<String> lore = new ArrayList<>();
         lore.add(ChatColor.GOLD+"Color: "+chatColor+ChatColor.BOLD+color.toUpperCase().replace("_", " "));

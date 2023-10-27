@@ -1,6 +1,5 @@
 package me.swipez.vehicles.commands;
 
-import it.unimi.dsi.fastutil.shorts.AbstractShort2ReferenceSortedMap;
 import me.swipez.vehicles.ArmorStandCreation;
 import me.swipez.vehicles.VehiclesPlugin;
 import org.bukkit.Location;
@@ -14,12 +13,9 @@ import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class ArmorStandMakeCommand implements CommandExecutor {
 
@@ -27,7 +23,7 @@ public class ArmorStandMakeCommand implements CommandExecutor {
     public static Location secondCorner;
 
     @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String[] args) {
         if (!VehiclesPlugin.creatorModeActive){
             return true;
         }
@@ -40,7 +36,7 @@ public class ArmorStandMakeCommand implements CommandExecutor {
                     for (int x = firstCorner.getBlockX(); x <= secondCorner.getBlockX(); x++){
                         for (int y = firstCorner.getBlockY(); y <= secondCorner.getBlockY(); y++){
                             for (int z = firstCorner.getBlockZ(); z <= secondCorner.getBlockZ(); z++){
-                                Block block = firstCorner.getWorld().getBlockAt(x, y, z);
+                                Block block = Objects.requireNonNull(firstCorner.getWorld()).getBlockAt(x, y, z);
                                 if (!block.getType().isAir() && !block.getType().equals(Material.BARRIER)){
                                     relativeAndMat.put(block.getLocation().clone().subtract(firstCorner), block.getBlockData());
                                 }
@@ -51,8 +47,8 @@ public class ArmorStandMakeCommand implements CommandExecutor {
                     List<UUID> armorStands = new ArrayList<>();
                     for (Location location : relativeAndMat.keySet()){
                         Location armorStandAddition = location.clone().multiply(distance).add(origin);
-                        ArmorStand armorStand = (ArmorStand) armorStandAddition.getWorld().spawnEntity(armorStandAddition, EntityType.ARMOR_STAND);
-                        armorStand.getEquipment().setHelmet(new ItemStack(relativeAndMat.get(location).getMaterial()));
+                        ArmorStand armorStand = (ArmorStand) Objects.requireNonNull(armorStandAddition.getWorld()).spawnEntity(armorStandAddition, EntityType.ARMOR_STAND);
+                        Objects.requireNonNull(armorStand.getEquipment()).setHelmet(new ItemStack(relativeAndMat.get(location).getMaterial()));
                         armorStand.setGravity(false);
                         armorStand.setVisible(false);
                         armorStand.setInvulnerable(true);

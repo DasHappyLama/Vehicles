@@ -7,6 +7,7 @@ import me.swipez.vehicles.config.ConfigGenerator;
 import me.swipez.vehicles.gui.GeneralListeners;
 import me.swipez.vehicles.items.ItemRegistry;
 import me.swipez.vehicles.settings.PluginSettings;
+import me.swipez.vehicles.vehicles.Vehicle;
 import org.bukkit.*;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.ArmorStand;
@@ -22,7 +23,9 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
+import java.util.regex.Pattern;
 
+@SuppressWarnings({"ResultOfMethodCallIgnored", "CallToPrintStackTrace", "SameParameterValue"})
 public final class VehiclesPlugin extends JavaPlugin {
 
     private static JavaPlugin plugin;
@@ -37,10 +40,12 @@ public final class VehiclesPlugin extends JavaPlugin {
     public static List<UUID> allSeats = new ArrayList<>();
 
     // THIS ENABLES CREATION FUNCTIONS FOR MAKING CARS, FOR OTHERS THAT ARE CREATING CARS, GOOD LUCK FIGURING OUT HOW TO USE IT MUAHAHAHA
-    public static boolean creatorModeActive = false;
+    public static boolean creatorModeActive = true;
 
     public static PluginSettings settings;
     public static WorldGuardManager worldGuardManager = null;
+
+    public static int MINECRAFT_VERSION;
 
     @Override
     public void onEnable() {
@@ -49,6 +54,14 @@ public final class VehiclesPlugin extends JavaPlugin {
         if (!mainFolder.exists()){
             mainFolder.mkdir();
         }
+
+        MINECRAFT_VERSION = Utils.getServerVersion();
+
+        if (MINECRAFT_VERSION != 19 && MINECRAFT_VERSION != 20) {
+            Bukkit.getLogger().severe("Unsupported minecraft version.");
+            return;
+        }
+
         attemptToUpdateCarFile();
         try {
             worldGuardManager = new WorldGuardManager();
@@ -66,10 +79,10 @@ public final class VehiclesPlugin extends JavaPlugin {
 
 
         plugin = this;
-        getCommand("vehicle").setExecutor(new VehicleCommand());
-        getCommand("vehicle").setTabCompleter(new VehicleCommand.VehicleCommandCompleter());
-        getCommand("creationmode").setExecutor(new CreationModeCommand());
-        getCommand("armorstandify").setExecutor(new ArmorStandMakeCommand());
+        Objects.requireNonNull(getCommand("vehicle")).setExecutor(new VehicleCommand());
+        Objects.requireNonNull(getCommand("vehicle")).setTabCompleter(new VehicleCommand.VehicleCommandCompleter());
+        Objects.requireNonNull(getCommand("creationmode")).setExecutor(new CreationModeCommand());
+        Objects.requireNonNull(getCommand("armorstandify")).setExecutor(new ArmorStandMakeCommand());
         getServer().getPluginManager().registerEvents(new GeneralListeners(), this);
         repeatTask();
         ItemRegistry.registerRecipes();
@@ -88,17 +101,16 @@ public final class VehiclesPlugin extends JavaPlugin {
 
         for (UUID uuid : vehicles.keySet()){
             Vehicle vehicle = vehicles.get(uuid);
-            StringBuilder builder = new StringBuilder();
-            builder.append(vehicle.origin.getWorld().getName());
-            builder.append(";");
-            builder.append(Utils.convertToString(vehicle.origin.clone().toVector()));
-            builder.append(";");
-            builder.append(vehicle.enumName);
-            builder.append(";");
-            builder.append(vehicle.color == null ? "null" : vehicle.color);
-            builder.append(";");
-            builder.append(vehicle.owner);
-            persistentStorage.getConfig().set("vh."+currentLoop, builder.toString());
+            String builder = Objects.requireNonNull(vehicle.getOrigin().getWorld()).getName() +
+                    ";" +
+                    Utils.convertToString(vehicle.getOrigin().clone().toVector()) +
+                    ";" +
+                    vehicle.getEnumName() +
+                    ";" +
+                    (vehicle.getColor() == null ? "null" : vehicle.getColor()) +
+                    ";" +
+                    vehicle.getOwner();
+            persistentStorage.getConfig().set("vh."+currentLoop, builder);
             currentLoop++;
         }
 
@@ -116,7 +128,8 @@ public final class VehiclesPlugin extends JavaPlugin {
         int vehicleCount = persistentStorage.getConfig().getInt("vehicleCount");
         for (int i = 0; i < vehicleCount; i++){
             String vehicleString = persistentStorage.getConfig().getString("vh."+i);
-            String[] vehicleSplit = vehicleString.split(";");
+            assert vehicleString != null;
+            String[] vehicleSplit = vehicleString.split(Pattern.quote(";"));
             World world = getServer().getWorld(vehicleSplit[0]);
             Location location = new Location(world, Double.parseDouble(vehicleSplit[1]), Double.parseDouble(vehicleSplit[2]), Double.parseDouble(vehicleSplit[3]));
             String name = vehicleSplit[4];
@@ -125,7 +138,7 @@ public final class VehiclesPlugin extends JavaPlugin {
             VehicleType vehicle = VehicleType.valueOf(name);
             Vehicle spawned = ArmorStandCreation.load(vehicle.carName, location, vehicle, owner);
             if (!color.equals("null")){
-                spawned.color = color;
+                spawned.setColor(color);
                 spawned.dye(color);
             }
         }
@@ -185,7 +198,7 @@ public final class VehiclesPlugin extends JavaPlugin {
                         if (entity instanceof ArmorStand){
                             PersistentDataContainer persistentDataContainer = entity.getPersistentDataContainer();
                             if (persistentDataContainer.has(new NamespacedKey(VehiclesPlugin.getPlugin(), "vehicleId"), PersistentDataType.STRING)){
-                                UUID vehicleId = UUID.fromString(persistentDataContainer.get(new NamespacedKey(VehiclesPlugin.getPlugin(), "vehicleId"), PersistentDataType.STRING));
+                                UUID vehicleId = UUID.fromString(Objects.requireNonNull(persistentDataContainer.get(new NamespacedKey(VehiclesPlugin.getPlugin(), "vehicleId"), PersistentDataType.STRING)));
                                 if (!vehicles.containsKey(vehicleId)){
                                     entity.remove();
                                 }
@@ -207,6 +220,7 @@ public final class VehiclesPlugin extends JavaPlugin {
     private void exportResourceToFile(String resourcePath, File outFile){
         try {
             InputStream inputStream = getResource(resourcePath);
+            assert inputStream != null;
             Files.copy(inputStream, outFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
         } catch (Exception e) {
             e.printStackTrace();

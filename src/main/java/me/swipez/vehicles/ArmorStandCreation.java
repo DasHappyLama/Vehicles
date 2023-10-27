@@ -1,6 +1,12 @@
 package me.swipez.vehicles;
 
 import me.swipez.vehicles.commands.CreationModeCommand;
+import me.swipez.vehicles.planes.Plane;
+import me.swipez.vehicles.planes.Plane_1_19_4;
+import me.swipez.vehicles.planes.Plane_1_20_2;
+import me.swipez.vehicles.vehicles.Vehicle;
+import me.swipez.vehicles.vehicles.Vehicle_1_19_4;
+import me.swipez.vehicles.vehicles.Vehicle_1_20_2;
 import org.bukkit.*;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.EquipmentSlot;
@@ -16,12 +22,12 @@ import java.io.IOException;
 import java.util.*;
 
 public class ArmorStandCreation {
-    List<UUID> selectedStands = new ArrayList<>();
-    Location origin;
-    Location seat;
-    Vector forwards = new Vector(1, 0, 0);
-    int lastInt = 0;
-    int indexCycle = 0;
+    private List<UUID> selectedStands = new ArrayList<>();
+    private Location origin;
+    private Location seat;
+    private Vector forwards = new Vector(1, 0, 0);
+    private int lastInt = 0;
+    private int indexCycle = 0;
     public HashMap<Integer, UUID> allArmorStands = new HashMap<>();
     public List<UUID> seats = new ArrayList<>();
     public List<UUID> blades = new ArrayList<>();
@@ -31,44 +37,44 @@ public class ArmorStandCreation {
 
     public ArmorStandCreation(Location origin) {
         this.origin = origin;
-        this.seat = origin.clone().add(0 ,0.5, 0);
+        this.seat = origin.clone().add(0, 0.5, 0);
     }
 
-    public CreationSettings getSettings(){
+    public CreationSettings getSettings() {
         return creationSettings;
     }
 
-    public void moveAll(double x, double y, double z){
-        for (UUID uuid : allArmorStands.values()){
+    public void moveAll(double x, double y, double z) {
+        for (UUID uuid : allArmorStands.values()) {
             ArmorStand armorStand = (ArmorStand) Bukkit.getEntity(uuid);
             armorStand.teleport(armorStand.getLocation().clone().add(x, y, z));
         }
     }
 
-    public void makeBlade(){
-        if (selectedStands.size() == 0){
+    public void makeBlade() {
+        if (selectedStands.size() == 0) {
             return;
         }
-        for (UUID uuid : selectedStands){
-            if (uuid.equals(bladeOrigin)){
+        for (UUID uuid : selectedStands) {
+            if (uuid.equals(bladeOrigin)) {
                 continue;
             }
             blades.add(uuid);
         }
     }
 
-    public void makeBladeOrigin(){
+    public void makeBladeOrigin() {
         bladeOrigin = selectedStands.get(0);
     }
 
-    public void moveSeat(double x, double y, double z){
+    public void moveSeat(double x, double y, double z) {
         seat.add(new Vector(x, y, z));
     }
 
-    public void deselect(int id){
-        for (Map.Entry<Integer, UUID> entry : allArmorStands.entrySet()){
-            if (selectedStands.contains(entry.getValue())){
-                if (entry.getKey() == id){
+    public void deselect(int id) {
+        for (Map.Entry<Integer, UUID> entry : allArmorStands.entrySet()) {
+            if (selectedStands.contains(entry.getValue())) {
+                if (entry.getKey() == id) {
                     selectedStands.remove(entry.getValue());
                     return;
                 }
@@ -76,7 +82,7 @@ public class ArmorStandCreation {
         }
     }
 
-    public void select(int id){
+    public void select(int id) {
         for (Map.Entry<Integer, UUID> entry : allArmorStands.entrySet()) {
             if (entry.getKey() == id) {
                 selectedStands.add(entry.getValue());
@@ -85,7 +91,7 @@ public class ArmorStandCreation {
         }
     }
 
-    public void clearVisibleIds(){
+    public void clearVisibleIds() {
         for (Map.Entry<Integer, UUID> entry : allArmorStands.entrySet()) {
             ArmorStand armorStand = (ArmorStand) Bukkit.getEntity(entry.getValue());
             armorStand.setCustomName(entry.getKey() + "#");
@@ -93,19 +99,19 @@ public class ArmorStandCreation {
         }
     }
 
-    public void displayIds(String block){
+    public void displayIds(String block) {
         clearVisibleIds();
-        for (Map.Entry<Integer, UUID> entry : allArmorStands.entrySet()){
+        for (Map.Entry<Integer, UUID> entry : allArmorStands.entrySet()) {
             ArmorStand armorStand = (ArmorStand) Bukkit.getEntity(entry.getValue());
-            if (armorStand.getEquipment().getHelmet().getType().toString().toLowerCase().contains(block.toLowerCase())){
-                armorStand.setCustomName(entry.getKey()+"#");
+            if (armorStand.getEquipment().getHelmet().getType().toString().toLowerCase().contains(block.toLowerCase())) {
+                armorStand.setCustomName(entry.getKey() + "#");
                 armorStand.setCustomNameVisible(true);
             }
         }
     }
 
-    public void addAll(List<UUID> uuids){
-        for (UUID uuid : uuids){
+    public void addAll(List<UUID> uuids) {
+        for (UUID uuid : uuids) {
             allArmorStands.put(lastInt, uuid);
             lastInt++;
         }
@@ -113,37 +119,36 @@ public class ArmorStandCreation {
         selectedStands.add(uuids.get(0));
     }
 
-    public void cycle(){
+    public void cycle() {
         selectedStands.clear();
         selectedStands.add(allArmorStands.get(indexCycle));
         indexCycle++;
-        if (indexCycle == allArmorStands.size()){
+        if (indexCycle == allArmorStands.size()) {
             indexCycle = 0;
         }
     }
 
-    public void cycle(String block){
+    public void cycle(String block) {
         List<Integer> availableIntegers = new ArrayList<>();
-        for (Map.Entry<Integer, UUID> entry : allArmorStands.entrySet()){
+        for (Map.Entry<Integer, UUID> entry : allArmorStands.entrySet()) {
             ArmorStand armorStand = (ArmorStand) Bukkit.getEntity(entry.getValue());
-            if (armorStand.getEquipment().getHelmet().getType().toString().toLowerCase().contains(block.toLowerCase())){
+            if (armorStand.getEquipment().getHelmet().getType().toString().toLowerCase().contains(block.toLowerCase())) {
                 availableIntegers.add(entry.getKey());
             }
         }
         availableIntegers.sort(Comparator.naturalOrder());
-        for (int i = 0; i < availableIntegers.size(); i++){
+        for (int i = 0; i < availableIntegers.size(); i++) {
             int index = availableIntegers.get(i);
-            if (indexCycle == index){
-                if (availableIntegers.size() > i + 1){
+            if (indexCycle == index) {
+                if (availableIntegers.size() > i + 1) {
                     index = availableIntegers.get(i + 1);
-                }
-                else {
+                } else {
                     indexCycle = 0;
                     index = availableIntegers.get(0);
                 }
             }
-            Bukkit.broadcastMessage("Comparing indexCycle: "+indexCycle+" to index: "+index);
-            if (indexCycle < index){
+            Bukkit.broadcastMessage("Comparing indexCycle: " + indexCycle + " to index: " + index);
+            if (indexCycle < index) {
                 Bukkit.broadcastMessage("IndexCycle is less than index");
                 selectedStands.clear();
                 selectedStands.add(allArmorStands.get(index));
@@ -151,12 +156,12 @@ public class ArmorStandCreation {
                 break;
             }
         }
-        if (indexCycle >= availableIntegers.get(availableIntegers.size() - 1)){
+        if (indexCycle >= availableIntegers.get(availableIntegers.size() - 1)) {
             indexCycle = -1;
         }
     }
 
-    public void makeArmorStand(){
+    public void makeArmorStand() {
         ArmorStand armorStand = (ArmorStand) origin.getWorld().spawnEntity(origin.clone(), EntityType.ARMOR_STAND);
         armorStand.addEquipmentLock(EquipmentSlot.HEAD, ArmorStand.LockType.ADDING_OR_CHANGING);
         armorStand.addEquipmentLock(EquipmentSlot.HEAD, ArmorStand.LockType.REMOVING_OR_CHANGING);
@@ -183,8 +188,8 @@ public class ArmorStandCreation {
         armorStand.setArms(true);
     }
 
-    public void cloneStand(){
-        for (ArmorStand selected : getSelectedStands()){
+    public void cloneStand() {
+        for (ArmorStand selected : getSelectedStands()) {
             ArmorStand clone = (ArmorStand) selected.getWorld().spawnEntity(selected.getLocation(), EntityType.ARMOR_STAND);
             clone.getEquipment().setHelmet(selected.getEquipment().getHelmet());
             clone.getEquipment().setItemInMainHand(selected.getEquipment().getItemInMainHand());
@@ -216,27 +221,27 @@ public class ArmorStandCreation {
         }
     }
 
-    public void selectAll(String block){
+    public void selectAll(String block) {
         selectedStands.clear();
-        for (Map.Entry<Integer, UUID> entry : allArmorStands.entrySet()){
+        for (Map.Entry<Integer, UUID> entry : allArmorStands.entrySet()) {
             ArmorStand armorStand = (ArmorStand) Bukkit.getEntity(entry.getValue());
-            if (armorStand.getEquipment().getHelmet().getType().toString().toLowerCase().contains(block.toLowerCase())){
+            if (armorStand.getEquipment().getHelmet().getType().toString().toLowerCase().contains(block.toLowerCase())) {
                 selectedStands.add(entry.getValue());
             }
         }
 
     }
 
-    public void deselectAll(String block){
-        for (Map.Entry<Integer, UUID> entry : allArmorStands.entrySet()){
+    public void deselectAll(String block) {
+        for (Map.Entry<Integer, UUID> entry : allArmorStands.entrySet()) {
             ArmorStand armorStand = (ArmorStand) Bukkit.getEntity(entry.getValue());
-            if (armorStand.getEquipment().getHelmet().getType().toString().toLowerCase().contains(block.toLowerCase())){
+            if (armorStand.getEquipment().getHelmet().getType().toString().toLowerCase().contains(block.toLowerCase())) {
                 selectedStands.remove(entry.getValue());
             }
         }
     }
 
-    public void undo(){
+    public void undo() {
         allArmorStands.remove(lastInt - 1);
         seats.remove(selectedStands.get(selectedStands.size() - 1));
         Bukkit.getEntity(selectedStands.get(selectedStands.size() - 1)).remove();
@@ -245,10 +250,10 @@ public class ArmorStandCreation {
         selectedStands.add(allArmorStands.get(lastInt - 1));
     }
 
-    public void clear(){
+    public void clear() {
         lastInt = 0;
-        for (UUID uuid : allArmorStands.values()){
-            if (Bukkit.getEntity(uuid) != null){
+        for (UUID uuid : allArmorStands.values()) {
+            if (Bukkit.getEntity(uuid) != null) {
                 Bukkit.getEntity(uuid).remove();
             }
         }
@@ -256,14 +261,14 @@ public class ArmorStandCreation {
         selectedStands.clear();
     }
 
-    public void move(double x, double y, double z){
-        for (ArmorStand armorStand : getSelectedStands()){
+    public void move(double x, double y, double z) {
+        for (ArmorStand armorStand : getSelectedStands()) {
             armorStand.teleport(armorStand.getLocation().clone().add(x, y, z));
         }
     }
 
-    public void rotateTotal(double x, double y, double z){
-        for (ArmorStand armorStand : getSelectedStands()){
+    public void rotateTotal(double x, double y, double z) {
+        for (ArmorStand armorStand : getSelectedStands()) {
             Location location = armorStand.getLocation().clone();
             Location desiredLocation = location.setDirection(location.getDirection().clone().rotateAroundY(x));
             desiredLocation.setDirection(desiredLocation.getDirection().clone().setX(Math.round(desiredLocation.getDirection().clone().getX())));
@@ -273,15 +278,14 @@ public class ArmorStandCreation {
         }
     }
 
-    public void rotateArm(boolean left, double x, double y, double z){
-        for (ArmorStand armorStand : getSelectedStands()){
-            if (left){
+    public void rotateArm(boolean left, double x, double y, double z) {
+        for (ArmorStand armorStand : getSelectedStands()) {
+            if (left) {
                 armorStand.setLeftArmPose(armorStand.getLeftArmPose().add(x, y, z));
                 armorStand.setLeftArmPose(armorStand.getLeftArmPose().setX(Math.round(armorStand.getLeftArmPose().getX())));
                 armorStand.setLeftArmPose(armorStand.getLeftArmPose().setY(Math.round(armorStand.getLeftArmPose().getY())));
                 armorStand.setLeftArmPose(armorStand.getLeftArmPose().setZ(Math.round(armorStand.getLeftArmPose().getZ())));
-            }
-            else {
+            } else {
                 armorStand.setRightArmPose(armorStand.getRightArmPose().add(x, y, z));
                 armorStand.setRightArmPose(armorStand.getRightArmPose().setX(Math.round(armorStand.getRightArmPose().getX())));
                 armorStand.setRightArmPose(armorStand.getRightArmPose().setY(Math.round(armorStand.getRightArmPose().getY())));
@@ -290,15 +294,15 @@ public class ArmorStandCreation {
         }
     }
 
-    public void update(){
-        if (getSelectedStands() == null){
+    public void update() {
+        if (getSelectedStands() == null) {
             return;
         }
-        for (ArmorStand armorStand : getSelectedStands()){
+        for (ArmorStand armorStand : getSelectedStands()) {
             armorStand.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 20, 1, true, false, false));
         }
         seat.getWorld().spawnParticle(Particle.VILLAGER_HAPPY, seat.clone(), 0);
-        for (UUID uuid : seats){
+        for (UUID uuid : seats) {
             ArmorStand seat = (ArmorStand) Bukkit.getEntity(uuid);
             seat.getWorld().spawnParticle(Particle.FLAME, seat.getLocation().clone().add(0, 1.8, 0), 0);
             seat.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 10, 1, true, false, false));
@@ -313,28 +317,28 @@ public class ArmorStandCreation {
         }
     }
 
-    public void save(String name){
-        if (getSelectedStands() == null){
+    public void save(String name) {
+        if (getSelectedStands() == null) {
             return;
         }
         VehiclesPlugin.storage.getConfig().set(name, null);
-        VehiclesPlugin.storage.getConfig().set(name+".count", lastInt);
-        VehiclesPlugin.storage.getConfig().set(name+".seat", Utils.convertToString(seat.clone().subtract(origin).subtract(0, 1, 0).toVector()));
-        VehiclesPlugin.storage.getConfig().set(name+".extraseatcount", seats.size());
-        for (int i = 0; i < seats.size(); i++){
+        VehiclesPlugin.storage.getConfig().set(name + ".count", lastInt);
+        VehiclesPlugin.storage.getConfig().set(name + ".seat", Utils.convertToString(seat.clone().subtract(origin).subtract(0, 1, 0).toVector()));
+        VehiclesPlugin.storage.getConfig().set(name + ".extraseatcount", seats.size());
+        for (int i = 0; i < seats.size(); i++) {
             UUID uuid = seats.get(i);
-            VehiclesPlugin.storage.getConfig().set(name+".exs."+i, Utils.convertToString(Bukkit.getEntity(uuid).getLocation().clone().subtract(origin).toVector()));
+            VehiclesPlugin.storage.getConfig().set(name + ".exs." + i, Utils.convertToString(Bukkit.getEntity(uuid).getLocation().clone().subtract(origin).toVector()));
         }
-        for (Map.Entry<Integer, UUID> entry : allArmorStands.entrySet()){
-            if (seats.contains(entry.getValue())){
+        for (Map.Entry<Integer, UUID> entry : allArmorStands.entrySet()) {
+            if (seats.contains(entry.getValue())) {
                 VehiclesPlugin.storage.getConfig().set(name + ".am." + entry.getKey(), "seat");
                 continue;
             }
             String extension = "";
-            if (blades.contains(entry.getValue())){
+            if (blades.contains(entry.getValue())) {
                 extension = "blade";
             }
-            if (bladeOrigin.equals(entry.getValue())){
+            if (bladeOrigin.equals(entry.getValue())) {
                 extension = "bladeOrigin";
             }
             ArmorStand armorStand = (ArmorStand) Bukkit.getEntity(entry.getValue());
@@ -362,12 +366,12 @@ public class ArmorStandCreation {
         }
     }
 
-    public static void loadCreation(String name, Location origin, Player owner){
+    public static void loadCreation(String name, Location origin, Player owner) {
         List<UUID> seats = loadSeats(name, origin, null);
         List<UUID> armorStands = loadArmorStands(name, origin, null);
         List<UUID> blades = loadBlades(name, origin, null);
         UUID bladeOrigin = loadBladeOrigin(name, origin, null);
-        Vector seatOffset = Utils.convertToVector(VehiclesPlugin.storage.getConfig().getString(name+".seat"));
+        Vector seatOffset = Utils.convertToVector(VehiclesPlugin.storage.getConfig().getString(name + ".seat"));
         ArmorStandCreation armorStandCreation = new ArmorStandCreation(origin);
         armorStandCreation.addAll(armorStands);
         armorStandCreation.addAll(seats);
@@ -380,11 +384,11 @@ public class ArmorStandCreation {
         CreationModeCommand.creationHashMap.put(owner.getUniqueId(), armorStandCreation);
     }
 
-    public static List<UUID> loadSeats(String name, Location origin, UUID uuid){
+    public static List<UUID> loadSeats(String name, Location origin, UUID uuid) {
         int seatCount = 0;
         try {
             seatCount = VehiclesPlugin.storage.getConfig().getInt(name + ".extraseatcount");
-        } catch (Exception e){
+        } catch (Exception e) {
             // ignore
         }
         List<UUID> extraSeats = new ArrayList<>();
@@ -411,8 +415,8 @@ public class ArmorStandCreation {
             extraSeat.addEquipmentLock(EquipmentSlot.OFF_HAND, ArmorStand.LockType.REMOVING_OR_CHANGING);
             extraSeats.add(extraSeat.getUniqueId());
 
-            if (uuid != null){
-                PersistentDataContainer persistentDataContainer =  extraSeat.getPersistentDataContainer();
+            if (uuid != null) {
+                PersistentDataContainer persistentDataContainer = extraSeat.getPersistentDataContainer();
                 persistentDataContainer.set(new NamespacedKey(VehiclesPlugin.getPlugin(), "vehicleId"), PersistentDataType.STRING, uuid.toString());
             }
         }
@@ -420,12 +424,12 @@ public class ArmorStandCreation {
         return extraSeats;
     }
 
-    public static UUID loadBladeOrigin(String name, Location origin, UUID uuid){
+    public static UUID loadBladeOrigin(String name, Location origin, UUID uuid) {
         UUID armorStandId = null;
         int count = VehiclesPlugin.storage.getConfig().getInt(name + ".count");
-        for (int i = 0; i < count; i++){
+        for (int i = 0; i < count; i++) {
             String key = VehiclesPlugin.storage.getConfig().getString(name + ".am." + i);
-            if (!key.endsWith("bladeOrigin")){
+            if (!key.endsWith("bladeOrigin")) {
                 continue;
             }
             String[] split = key.split(";");
@@ -461,20 +465,20 @@ public class ArmorStandCreation {
             armorStand.getEquipment().setItemInMainHand(new ItemStack(Material.valueOf(split[13])));
             armorStand.getEquipment().setItemInOffHand(new ItemStack(Material.valueOf(split[14])));
             armorStandId = armorStand.getUniqueId();
-            if (uuid != null){
-                PersistentDataContainer persistentDataContainer =  armorStand.getPersistentDataContainer();
+            if (uuid != null) {
+                PersistentDataContainer persistentDataContainer = armorStand.getPersistentDataContainer();
                 persistentDataContainer.set(new NamespacedKey(VehiclesPlugin.getPlugin(), "vehicleId"), PersistentDataType.STRING, uuid.toString());
             }
         }
         return armorStandId;
     }
 
-    public static List<UUID> loadBlades(String name, Location origin, UUID uuid){
+    public static List<UUID> loadBlades(String name, Location origin, UUID uuid) {
         List<UUID> armorStands = new ArrayList<>();
         int count = VehiclesPlugin.storage.getConfig().getInt(name + ".count");
-        for (int i = 0; i < count; i++){
+        for (int i = 0; i < count; i++) {
             String key = VehiclesPlugin.storage.getConfig().getString(name + ".am." + i);
-            if (!key.endsWith("blade")){
+            if (!key.endsWith("blade")) {
                 continue;
             }
             String[] split = key.split(";");
@@ -511,23 +515,23 @@ public class ArmorStandCreation {
             armorStand.getEquipment().setItemInOffHand(new ItemStack(Material.valueOf(split[14])));
             armorStands.add(armorStand.getUniqueId());
 
-            if (uuid != null){
-                PersistentDataContainer persistentDataContainer =  armorStand.getPersistentDataContainer();
+            if (uuid != null) {
+                PersistentDataContainer persistentDataContainer = armorStand.getPersistentDataContainer();
                 persistentDataContainer.set(new NamespacedKey(VehiclesPlugin.getPlugin(), "vehicleId"), PersistentDataType.STRING, uuid.toString());
             }
         }
         return armorStands;
     }
 
-    public static List<UUID> loadArmorStands(String name, Location origin, UUID uuid){
+    public static List<UUID> loadArmorStands(String name, Location origin, UUID uuid) {
         List<UUID> armorStands = new ArrayList<>();
         int count = VehiclesPlugin.storage.getConfig().getInt(name + ".count");
-        for (int i = 0; i < count; i++){
+        for (int i = 0; i < count; i++) {
             String key = VehiclesPlugin.storage.getConfig().getString(name + ".am." + i);
-            if (key.equals("seat")){
+            if (key.equals("seat")) {
                 continue;
             }
-            if (key.endsWith("blade") || key.endsWith("bladeOrigin")){
+            if (key.endsWith("blade") || key.endsWith("bladeOrigin")) {
                 continue;
             }
             String[] split = key.split(";");
@@ -564,15 +568,15 @@ public class ArmorStandCreation {
             armorStand.getEquipment().setItemInOffHand(new ItemStack(Material.valueOf(split[14])));
             armorStands.add(armorStand.getUniqueId());
 
-            if (uuid != null){
-                PersistentDataContainer persistentDataContainer =  armorStand.getPersistentDataContainer();
+            if (uuid != null) {
+                PersistentDataContainer persistentDataContainer = armorStand.getPersistentDataContainer();
                 persistentDataContainer.set(new NamespacedKey(VehiclesPlugin.getPlugin(), "vehicleId"), PersistentDataType.STRING, uuid.toString());
             }
         }
         return armorStands;
     }
 
-    public static Vehicle load(String name, Location origin, VehicleType vehicle, UUID owner) {
+    public static me.swipez.vehicles.vehicles.Vehicle load(String name, Location origin, VehicleType vehicle, UUID owner) {
 
         UUID uuid = UUID.randomUUID();
         String seat = VehiclesPlugin.storage.getConfig().getString(name + ".seat");
@@ -605,22 +609,38 @@ public class ArmorStandCreation {
             pig1.addEquipmentLock(EquipmentSlot.HAND, ArmorStand.LockType.REMOVING_OR_CHANGING);
             pig1.addEquipmentLock(EquipmentSlot.OFF_HAND, ArmorStand.LockType.ADDING_OR_CHANGING);
             pig1.addEquipmentLock(EquipmentSlot.OFF_HAND, ArmorStand.LockType.REMOVING_OR_CHANGING);
-            PersistentDataContainer persistentDataContainer =  pig1.getPersistentDataContainer();
+            PersistentDataContainer persistentDataContainer = pig1.getPersistentDataContainer();
             persistentDataContainer.set(new NamespacedKey(VehiclesPlugin.getPlugin(), "vehicleId"), PersistentDataType.STRING, uuid.toString());
         }));
-        if (bladeOrigin != null){
-            return new Plane(realSeat.getUniqueId(), armorStands, new Vector(1, 0, 0), origin.clone(), name, extraSeats, vehicle, owner, uuid, blades, bladeOrigin, vehicle.rotateX);
+        if (bladeOrigin != null) {
+            return buildPlane(realSeat.getUniqueId(), armorStands, new Vector(1, 0, 0), origin.clone(), name, extraSeats, vehicle, owner, uuid, blades, bladeOrigin, vehicle.rotateX);
         }
-        return new Vehicle(realSeat.getUniqueId(), armorStands, new Vector(1, 0, 0), origin.clone(), name, extraSeats, vehicle, owner, uuid);
+        return buildVehicle(realSeat.getUniqueId(), armorStands, new Vector(1, 0, 0), origin.clone(), name, extraSeats, vehicle, owner, uuid);
     }
 
-    public List<ArmorStand> getSelectedStands(){
-        if (selectedStands.isEmpty()){
+    private static Plane buildPlane(UUID seat, List<UUID> armorStands, Vector forwards, Location origin, String name, List<UUID> extraSeats, VehicleType vehicleType, UUID owner, UUID vehicleId, List<UUID> blades, UUID bladeOrigin, boolean rotateX) {
+        if (VehiclesPlugin.MINECRAFT_VERSION == 19) {
+            return new Plane_1_19_4(seat, armorStands, forwards, origin, name, extraSeats, vehicleType, owner, vehicleId, blades, bladeOrigin, rotateX);
+        } else {
+            return new Plane_1_20_2(seat, armorStands, forwards, origin, name, extraSeats, vehicleType, owner, vehicleId, blades, bladeOrigin, rotateX);
+        }
+    }
+
+    private static Vehicle buildVehicle(UUID seat, List<UUID> armorStands, Vector forwards, Location origin, String name, List<UUID> extraSeats, VehicleType vehicleType, UUID owner, UUID vehicleId) {
+        if (VehiclesPlugin.MINECRAFT_VERSION == 19) {
+            return new Vehicle_1_19_4(seat, armorStands, forwards, origin, name, extraSeats, vehicleType, owner, vehicleId);
+        } else {
+            return new Vehicle_1_20_2(seat, armorStands, forwards, origin, name, extraSeats, vehicleType, owner, vehicleId);
+        }
+    }
+
+    public List<ArmorStand> getSelectedStands() {
+        if (selectedStands.isEmpty()) {
             return null;
         }
         // Convert list of uuids to list of armorstands
         List<ArmorStand> armorStands = new ArrayList<>();
-        for (UUID uuid : selectedStands){
+        for (UUID uuid : selectedStands) {
             armorStands.add((ArmorStand) Bukkit.getEntity(uuid));
         }
         return armorStands;

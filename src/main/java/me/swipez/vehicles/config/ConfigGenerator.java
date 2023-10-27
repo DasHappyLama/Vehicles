@@ -6,6 +6,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import java.io.File;
 import java.io.IOException;
 
+@SuppressWarnings({"ResultOfMethodCallIgnored", "CallToPrintStackTrace", "unused"})
 public class ConfigGenerator {
 
     private final YamlConfiguration config;
@@ -24,10 +25,8 @@ public class ConfigGenerator {
         config = YamlConfiguration.loadConfiguration(file);
     }
 
-    public ConfigGenerator addDefaultToConfig(String configPath, Object value){
+    public void addDefaultToConfig(String configPath, Object value){
         config.addDefault(configPath, value);
-
-        return this;
     }
 
     public YamlConfiguration getConfig(){
@@ -42,14 +41,12 @@ public class ConfigGenerator {
         config.load(file);
     }
 
-    public ConfigGenerator buildConfig(){
+    public void buildConfig(){
         getConfig().options().copyDefaults(true);
         try {
             saveConfig();
         } catch (IOException exception) {
             exception.printStackTrace();
         }
-
-        return this;
     }
 }

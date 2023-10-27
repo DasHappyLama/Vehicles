@@ -20,6 +20,7 @@ import java.util.function.Consumer;
  *
  * @author Parker Hawke - Choco
  */
+@SuppressWarnings("unused")
 public final class ItemBuilder {
 
     private final ItemStack item;

@@ -6,7 +6,10 @@ import me.swipez.vehicles.commands.CreationModeCommand;
 import me.swipez.vehicles.events.VehicleEnterEvent;
 import me.swipez.vehicles.events.VehiclePlaceEvent;
 import me.swipez.vehicles.items.ItemRegistry;
+import me.swipez.vehicles.planes.Plane;
+import me.swipez.vehicles.planes.Plane_1_19_4;
 import me.swipez.vehicles.recipe.VehicleBox;
+import me.swipez.vehicles.vehicles.Vehicle;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.ArmorStand;
@@ -23,15 +26,13 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
+@SuppressWarnings("CallToPrintStackTrace")
 public class GeneralListeners implements Listener {
 
-    HashMap<UUID, EquipmentGUI> equipmentGUIHashMap = new HashMap<>();
-    List<UUID> ignoredPlayers = new ArrayList<>();
+    private HashMap<UUID, EquipmentGUI> equipmentGUIHashMap = new HashMap<>();
+    private List<UUID> ignoredPlayers = new ArrayList<>();
 
     @EventHandler
     public void onVehiclePlaced(VehiclePlaceEvent event){
@@ -46,7 +47,7 @@ public class GeneralListeners implements Listener {
                 e.printStackTrace();
             }
         }
-        if (event.getVehicle() instanceof Plane){
+        if (event.getVehicle() instanceof Plane_1_19_4){
             if (!VehiclesPlugin.settings.planes){
                 if (!event.getPlayer().hasPermission("vehicles.plane.bypass")){
                     event.getPlayer().sendMessage(ChatColor.RED+"Planes have been disabled on this server!");
@@ -58,7 +59,7 @@ public class GeneralListeners implements Listener {
 
     @EventHandler
     public void onVehicleEntered(VehicleEnterEvent event){
-        if (event.getVehicle() instanceof Plane){
+        if (event.getVehicle() instanceof Plane_1_19_4){
             if (!VehiclesPlugin.settings.planes){
                 if (!event.getPlayer().hasPermission("vehicles.plane.bypass")){
                     event.getPlayer().sendMessage(ChatColor.RED+"Planes have been disabled on this server!");
@@ -86,17 +87,17 @@ public class GeneralListeners implements Listener {
         if (!event.hasItem()){
             return;
         }
-        if (!event.getItem().getType().equals(Material.STICK)){
+        if (!Objects.requireNonNull(event.getItem()).getType().equals(Material.STICK)){
             return;
         }
         // First corner must be < second corner
         if (event.getAction().toString().toLowerCase().contains("left")){
-            ArmorStandMakeCommand.firstCorner = event.getClickedBlock().getLocation();
+            ArmorStandMakeCommand.firstCorner = Objects.requireNonNull(event.getClickedBlock()).getLocation();
             event.getPlayer().sendMessage(ChatColor.GREEN+"First corner selected");
             event.setCancelled(true);
         }
         if (event.getAction().toString().toLowerCase().contains("right")){
-            ArmorStandMakeCommand.secondCorner = event.getClickedBlock().getLocation();
+            ArmorStandMakeCommand.secondCorner = Objects.requireNonNull(event.getClickedBlock()).getLocation();
             event.getPlayer().sendMessage(ChatColor.GREEN+"Second corner selected");
             event.setCancelled(true);
         }
@@ -157,7 +158,7 @@ public class GeneralListeners implements Listener {
         if (event.getRightClicked() instanceof ArmorStand clickedStand){
             PersistentDataContainer persistentDataContainer = clickedStand.getPersistentDataContainer();
             if (persistentDataContainer.has(new NamespacedKey(VehiclesPlugin.getPlugin(), "vehicleId"), PersistentDataType.STRING)){
-                UUID uuid = UUID.fromString(persistentDataContainer.get(new NamespacedKey(VehiclesPlugin.getPlugin(), "vehicleId"), PersistentDataType.STRING));
+                UUID uuid = UUID.fromString(Objects.requireNonNull(persistentDataContainer.get(new NamespacedKey(VehiclesPlugin.getPlugin(), "vehicleId"), PersistentDataType.STRING)));
                 if (VehiclesPlugin.vehicles.containsKey(uuid)){
                     Vehicle vehicle = VehiclesPlugin.vehicles.get(uuid);
                     if (vehicle.isOwnedBy(event.getPlayer())){
@@ -168,8 +169,8 @@ public class GeneralListeners implements Listener {
                             return;
                         }
                         if (event.getPlayer().isSneaking()){
-                            VehicleBox vehicleBox = VehicleBox.vehicleBoxes.get(VehicleType.valueOf(vehicle.enumName));
-                            VehicleBox coloredBox = vehicleBox.getAlternateColor(vehicle.color, ChatColor.WHITE);
+                            VehicleBox vehicleBox = VehicleBox.vehicleBoxes.get(VehicleType.valueOf(vehicle.getEnumName()));
+                            VehicleBox coloredBox = vehicleBox.getAlternateColor(vehicle.getColor(), ChatColor.WHITE);
                             vehicle.remove(true);
                             event.getPlayer().playSound(event.getPlayer().getLocation(), Sound.ENTITY_CHICKEN_EGG, 1, 1);
                             event.getPlayer().getInventory().addItem(coloredBox.getItemStack());
@@ -178,12 +179,7 @@ public class GeneralListeners implements Listener {
                     }
                     vehicle.attemptSit(event.getPlayer());
                     if (vehicle instanceof Plane plane){
-                        new BukkitRunnable() {
-                            @Override
-                            public void run() {
-                                plane.drivable = true;
-                            }
-                        }.runTaskLater(VehiclesPlugin.getPlugin(), 20);
+                        Bukkit.getScheduler().runTaskLater(VehiclesPlugin.getPlugin(), ()-> plane.setDriveable(true), 20);
                     }
                 }
             }
@@ -207,7 +203,7 @@ public class GeneralListeners implements Listener {
             return;
         }
         if (event.getAction().toString().toLowerCase().contains("left")){
-            if (event.getItem().isSimilar(ItemRegistry.ROTATE_CONTROL)) {
+            if (Objects.requireNonNull(event.getItem()).isSimilar(ItemRegistry.ROTATE_CONTROL)) {
                 if (!player.isSneaking()) {
                     double moveamount = creationSettings.rotationAmount;
                     double xAmount = 0;
@@ -265,7 +261,7 @@ public class GeneralListeners implements Listener {
             }
         }
         else {
-            if (event.getItem().isSimilar(ItemRegistry.ROTATE_CONTROL)) {
+            if (Objects.requireNonNull(event.getItem()).isSimilar(ItemRegistry.ROTATE_CONTROL)) {
                 if (!player.isSneaking()) {
                     double moveamount = -creationSettings.rotationAmount;
                     double xAmount = 0;

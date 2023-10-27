@@ -15,16 +15,13 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class EquipmentGUI implements Listener {
 
     private final Inventory displayInventory;
-    ArmorStandCreation armorStandCreation;
-    UUID owner;
+    private ArmorStandCreation armorStandCreation;
+    private UUID owner;
 
     public EquipmentGUI(ArmorStandCreation creation, UUID owner) {
         this.owner = owner;
@@ -36,7 +33,7 @@ public class EquipmentGUI implements Listener {
     public void display(Player player){
         displayInventory.clear();
         ArmorStand selected = armorStandCreation.getSelectedStands().get(0);
-        displayInventory.setItem(0, displayOrNull(selected.getEquipment().getHelmet(), "Helmet"));
+        displayInventory.setItem(0, displayOrNull(Objects.requireNonNull(selected.getEquipment()).getHelmet(), "Helmet"));
         displayInventory.setItem(1, displayOrNull(selected.getEquipment().getChestplate(), "Chestplate"));
         displayInventory.setItem(2, displayOrNull(selected.getEquipment().getLeggings(), "Leggings"));
         displayInventory.setItem(3, displayOrNull(selected.getEquipment().getBoots(), "Boots"));
@@ -45,7 +42,7 @@ public class EquipmentGUI implements Listener {
 
         for (int i = 0; i < displayInventory.getSize(); i++){
             if (displayInventory.getItem(i) == null){
-                displayInventory.setItem(i, generateDummyItem(Material.GRAY_STAINED_GLASS_PANE, ""));
+                displayInventory.setItem(i, generateDummyItem());
             }
         }
         player.openInventory(displayInventory);
@@ -60,7 +57,7 @@ public class EquipmentGUI implements Listener {
             return;
         }
         if (event.getView().getTitle().equals(ChatColor.RED + "ArmorStand Equipment")){
-            if (event.getClickedInventory().contains(generateDummyItem(Material.GRAY_STAINED_GLASS_PANE, ""))){
+            if (event.getClickedInventory().contains(generateDummyItem())){
                 Player player = (Player) event.getWhoClicked();
                 if (event.getClick().isLeftClick()){
                     if (event.getCursor() != null){
@@ -95,27 +92,27 @@ public class EquipmentGUI implements Listener {
             return false;
         }
         if (slot == 0){
-            selected.getEquipment().setHelmet(null);
+            Objects.requireNonNull(selected.getEquipment()).setHelmet(null);
             return true;
         }
         else if (slot == 1){
-            selected.getEquipment().setChestplate(null);
+            Objects.requireNonNull(selected.getEquipment()).setChestplate(null);
             return true;
         }
         else if (slot == 2){
-            selected.getEquipment().setLeggings(null);
+            Objects.requireNonNull(selected.getEquipment()).setLeggings(null);
             return true;
         }
         else if (slot == 3){
-            selected.getEquipment().setBoots(null);
+            Objects.requireNonNull(selected.getEquipment()).setBoots(null);
             return true;
         }
         else if (slot == 4){
-            selected.getEquipment().setItemInMainHand(null);
+            Objects.requireNonNull(selected.getEquipment()).setItemInMainHand(null);
             return true;
         }
         else if (slot == 5){
-            selected.getEquipment().setItemInOffHand(null);
+            Objects.requireNonNull(selected.getEquipment()).setItemInOffHand(null);
             return true;
         }
         return false;
@@ -127,36 +124,37 @@ public class EquipmentGUI implements Listener {
             return false;
         }
         if (slot == 0){
-            selected.getEquipment().setHelmet(itemStack.clone());
+            Objects.requireNonNull(selected.getEquipment()).setHelmet(itemStack.clone());
             return true;
         }
         if (slot == 1){
-            selected.getEquipment().setChestplate(itemStack.clone());
+            Objects.requireNonNull(selected.getEquipment()).setChestplate(itemStack.clone());
             return true;
         }
         if (slot == 2){
-            selected.getEquipment().setLeggings(itemStack.clone());
+            Objects.requireNonNull(selected.getEquipment()).setLeggings(itemStack.clone());
             return true;
         }
         if (slot == 3){
-            selected.getEquipment().setBoots(itemStack.clone());
+            Objects.requireNonNull(selected.getEquipment()).setBoots(itemStack.clone());
             return true;
         }
         if (slot == 4){
-            selected.getEquipment().setItemInMainHand(itemStack.clone());
+            Objects.requireNonNull(selected.getEquipment()).setItemInMainHand(itemStack.clone());
             return true;
         }
         if (slot == 5){
-            selected.getEquipment().setItemInOffHand(itemStack.clone());
+            Objects.requireNonNull(selected.getEquipment()).setItemInOffHand(itemStack.clone());
             return true;
         }
         return false;
     }
 
-    private static ItemStack generateDummyItem(Material material, String name){
-        ItemStack itemStack = new ItemStack(material);
+    private static ItemStack generateDummyItem(){
+        ItemStack itemStack = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
         ItemMeta meta = itemStack.getItemMeta();
-        meta.setDisplayName(name);
+        assert meta != null;
+        meta.setDisplayName("");
 
         itemStack.setItemMeta(meta);
 
@@ -168,6 +166,7 @@ public class EquipmentGUI implements Listener {
         if (stack != null && stack.getItemMeta() != null) {
             itemStack = new ItemStack(stack.getType());
             ItemMeta meta = itemStack.getItemMeta();
+            assert meta != null;
             meta.setDisplayName(ChatColor.GOLD + title);
             List<String> lore = new LinkedList<>();
             lore.add(ChatColor.GRAY.toString() + ChatColor.ITALIC + "Right click to clear me!");
@@ -177,6 +176,7 @@ public class EquipmentGUI implements Listener {
         else {
             itemStack = new ItemStack(Material.RED_STAINED_GLASS_PANE);
             ItemMeta meta = itemStack.getItemMeta();
+            assert meta != null;
             meta.setDisplayName(ChatColor.RED+title);
             List<String> lore = new LinkedList<>();
             lore.add(ChatColor.GRAY.toString()+ChatColor.ITALIC+"Left click on this slot with an item!");

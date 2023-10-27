@@ -1,7 +1,7 @@
 package me.swipez.vehicles.commands;
 
 import me.swipez.vehicles.ArmorStandCreation;
-import me.swipez.vehicles.Vehicle;
+import me.swipez.vehicles.vehicles.Vehicle;
 import me.swipez.vehicles.VehicleType;
 import me.swipez.vehicles.VehiclesPlugin;
 import me.swipez.vehicles.items.ItemRegistry;
@@ -16,15 +16,15 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 public class VehicleCommand implements CommandExecutor {
     @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String[] args) {
         if (sender instanceof Player player){
             if (!player.hasPermission("vehicles.admin")){
                 player.sendMessage(ChatColor.RED + "You do not have permission to use this command");
@@ -33,7 +33,7 @@ public class VehicleCommand implements CommandExecutor {
             if (args.length == 2){
                 if (args[0].equals("load")){
                     String name = args[1];
-                    VehicleType vehicleType = null;
+                    VehicleType vehicleType;
                     try {
                         vehicleType = VehicleType.valueOf(name.toUpperCase());
                     } catch (IllegalArgumentException e){
@@ -53,7 +53,7 @@ public class VehicleCommand implements CommandExecutor {
                     }
                     List<Vehicle> vehiclesToRemove = new ArrayList<>();
                     for (Vehicle vehicle : VehiclesPlugin.vehicles.values()){
-                        if (vehicle.origin.distance(player.getLocation()) < distance){
+                        if (vehicle.getOrigin().distance(player.getLocation()) < distance){
                             vehiclesToRemove.add(vehicle);
                         }
                     }
@@ -71,9 +71,9 @@ public class VehicleCommand implements CommandExecutor {
                         TextComponent textComponent = new TextComponent(ChatColor.GRAY+"Vehicles: ");
                         player.spigot().sendMessage(textComponent);
                         for (Vehicle vehicle : VehiclesPlugin.vehiclesOwnedByPlayers.get(VehiclesPlugin.nameMappings.get(name.toLowerCase()))){
-                            TextComponent nameComponent = new TextComponent(ChatColor.GOLD+"- "+vehicle.enumName);
+                            TextComponent nameComponent = new TextComponent(ChatColor.GOLD+"- "+vehicle.getEnumName());
                             TextComponent clickableComponent = new TextComponent(ChatColor.BLUE+" [Click to Teleport]");
-                            clickableComponent.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/vehicle teleport "+vehicle.id));
+                            clickableComponent.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/vehicle teleport "+vehicle.getUniqueId()));
                             nameComponent.addExtra(clickableComponent);
                             player.spigot().sendMessage(nameComponent);
                         }
@@ -81,7 +81,7 @@ public class VehicleCommand implements CommandExecutor {
                     }
                 }
                 if (args[0].equalsIgnoreCase("give")){
-                    VehicleType vehicleType = null;
+                    VehicleType vehicleType;
                     try {
                         vehicleType = VehicleType.valueOf(args[1].toUpperCase());
                     } catch (IllegalArgumentException e){
@@ -94,7 +94,7 @@ public class VehicleCommand implements CommandExecutor {
                 if (args[0].equalsIgnoreCase("teleport")){
                     Vehicle vehicle = VehiclesPlugin.vehicles.get(UUID.fromString(args[1]));
                     if (vehicle != null){
-                        player.teleport(vehicle.origin);
+                        player.teleport(vehicle.getOrigin());
                     }
                 }
             }
@@ -132,7 +132,7 @@ public class VehicleCommand implements CommandExecutor {
 
     public static class VehicleCommandCompleter implements TabCompleter {
         @Override
-        public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
+        public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String[] args) {
             if (args.length == 1){
                 Completion completion = new Completion();
                 completion.add("give");
